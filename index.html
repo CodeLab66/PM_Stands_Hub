@@ -6,6 +6,9 @@
     <title>Standards Explorer | PMBOK 7, PRINCE2 & ISO 21500</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF library for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -39,6 +42,118 @@
                 </div>
             </div>
 
+            <!-- AI Search Section -->
+            <div class="section" id="search">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-search"></i> AI-Powered Search</h2>
+                </div>
+                <div class="search-bar" style="width: 100%; margin-bottom: 20px;">
+                    <input type="text" id="aiSearchInput" placeholder="Ask a question about project management standards...">
+                    <button id="aiSearchBtn" style="padding: 0 25px;"><i class="fas fa-robot"></i> Ask AI</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Filter by Standard:</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label><input type="checkbox" id="pmbokCheck" checked> PMBOK 7</label>
+                        <label><input type="checkbox" id="prince2Check" checked> PRINCE2</label>
+                        <label><input type="checkbox" id="isoCheck" checked> ISO 21500</label>
+                    </div>
+                </div>
+
+                <div id="searchResults" class="search-results">
+                    <!-- AI search results will appear here -->
+                </div>
+            </div>
+
+            <!-- Process Generator Section -->
+            <div class="section" id="process">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-cogs"></i> AI Process Generator</h2>
+                </div>
+                
+                <div class="parameter-grid">
+                    <div class="form-group">
+                        <label class="form-label">Project Type</label>
+                        <select class="form-control" id="projectType">
+                            <option value="software">Software Development</option>
+                            <option value="construction">Construction</option>
+                            <option value="research">Research & Development</option>
+                            <option value="marketing">Marketing Campaign</option>
+                            <option value="change">Organizational Change</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Team Size</label>
+                        <select class="form-control" id="teamSize">
+                            <option value="small">Small (1-5 people)</option>
+                            <option value="medium">Medium (6-15 people)</option>
+                            <option value="large">Large (16-50 people)</option>
+                            <option value="xlarge">Very Large (50+ people)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Project Duration</label>
+                        <select class="form-control" id="projectDuration">
+                            <option value="short">Short-term (less than 3 months)</option>
+                            <option value="medium">Medium-term (3-12 months)</option>
+                            <option value="long">Long-term (1-2 years)</option>
+                            <option value="xlong">Very Long-term (2+ years)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Risk Level</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="5" value="3" class="slider" id="riskLevel">
+                            <span class="slider-value" id="riskValue">3</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Preferred Standards (select one or more)</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label><input type="checkbox" id="processPmbok" checked> PMBOK 7</label>
+                        <label><input type="checkbox" id="processPrince2"> PRINCE2</label>
+                        <label><input type="checkbox" id="processIso" checked> ISO 21500</label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="generateProcess" style="width: 100%; padding: 15px;">
+                    <i class="fas fa-magic"></i> Generate Custom Process Framework
+                </button>
+
+                <div id="processOutput" class="process-output">
+                    <!-- Generated process will appear here -->
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="section" id="settings">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-cog"></i> Settings</h2>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">AI API Key</label>
+                    <input type="password" class="form-control" id="apiKey" placeholder="Enter your AI API key">
+                    <small>Your API key is stored locally and never shared with our servers.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Default Standards</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label><input type="checkbox" checked> PMBOK 7</label>
+                        <label><input type="checkbox" checked> PRINCE2</label>
+                        <label><input type="checkbox" checked> ISO 21500</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-outline" id="testApiBtn">
+                        <i class="fas fa-vial"></i> Test API Connection
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="saveSettings">Save Settings</button>
             <!-- Comparison Section -->
             <div class="section" id="compare">
                 <div class="section-header">
@@ -525,6 +640,12 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
     <script src="js/script.js"></script>
 </body>
 </html>
