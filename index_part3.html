@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standards Explorer | PMBOK 7, PRINCE2 & ISO 21500</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1><i class="fas fa-project-diagram"></i> Standards<span>Explorer</span></h1>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-section="dashboard"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li data-section="search"><a href="#"><i class="fas fa-search"></i> AI Search</a></li>
+                <li data-section="compare"><a href="#"><i class="fas fa-exchange-alt"></i> Compare Standards</a></li>
+                <li data-section="library"><a href="#"><i class="fas fa-book"></i> Standards Library</a></li>
+                <li data-section="process"><a href="#"><i class="fas fa-cogs"></i> Process Generator</a></li>
+                <li data-section="insights"><a href="#"><i class="fas fa-chart-bar"></i> Insights Dashboard</a></li>
+                <li data-section="saved"><a href="#"><i class="fas fa-bookmark"></i> Saved Items</a></li>
+                <li data-section="settings"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <div class="search-bar">
+                    <input type="text" id="globalSearch" placeholder="Ask AI about project standards...">
+                    <button id="globalSearchBtn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="user-actions">
+                    <button class="btn btn-outline" id="refreshData"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                </div>
+            </div>
+
+            <!-- Comparison Section -->
+            <div class="section" id="compare">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-exchange-alt"></i> Standards Comparison</h2>
+                    <p>Comprehensive comparison of all topics across PMBOK 7, PRINCE2, and ISO 21500</p>
+                </div>
+                
+                <div class="comparison-controls">
+                    <select class="select-standard" id="comparisonTopic">
+                        <option value="all">All Topics (Comprehensive)</option>
+                        <option value="risk">Risk Management</option>
+                        <option value="quality">Quality Management</option>
+                        <option value="stakeholder">Stakeholder Management</option>
+                        <option value="scope">Scope Management</option>
+                        <option value="time">Time Management</option>
+                        <option value="cost">Cost Management</option>
+                        <option value="change">Change Control</option>
+                        <option value="communication">Communication Management</option>
+                        <option value="procurement">Procurement Management</option>
+                        <option value="integration">Project Integration</option>
+                    </select>
+                    <button class="btn btn-primary" id="compareBtn"><i class="fas fa-balance-scale"></i> Compare</button>
+                    <button class="btn btn-outline" id="analyzeAllBtn"><i class="fas fa-brain"></i> AI Analyze All</button>
+                </div>
+                
+                <div class="topic-selector">
+                    <div class="topic-btn active" data-topic="all">
+                        All Topics
+                        <div class="topic-badge">30</div>
+                    </div>
+                    <div class="topic-btn" data-topic="risk">
+                        Risk Management
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="quality">
+                        Quality Management
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="stakeholder">
+                        Stakeholder Management
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="scope">
+                        Scope Management
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="time">
+                        Time Management
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="cost">
+                        Cost Management
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="change">
+                        Change Control
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="communication">
+                        Communication
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="procurement">
+                        Procurement
+                        <div class="topic-badge">3</div>
+                    </div>
+                    <div class="topic-btn" data-topic="integration">
+                        Project Integration
+                        <div class="topic-badge">3</div>
+                    </div>
+                </div>
+                
+                <!-- Comprehensive Comparison View -->
+                <div id="comprehensiveComparison" class="comprehensive-view" style="display: none;">
+                    <div class="ai-analysis-result">
+                        <div class="analysis-header">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Comprehensive Standards Analysis</h3>
+                        </div>
+                        <div id="comprehensiveResults">
+                            <!-- All topics comparison will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Single Topic Comparison View -->
+                <div id="singleTopicComparison" class="comparison-view">
+                    <div id="comparisonResults">
+                        <!-- Single topic comparison will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Dashboard Section -->
+            <div class="section" id="insights">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-chart-bar"></i> AI-Generated Insights</h2>
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="summary">Summary</div>
+                    <div class="tab" data-tab="analytics">Analytics</div>
+                    <div class="tab" data-tab="recommendations">Recommendations</div>
+                </div>
+
+                <div class="tab-content active" id="summaryTab">
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <h3 style="margin-bottom: 15px;">Comprehensive Standards Analysis</h3>
+                            <p>This analysis provides a detailed comparison of PMBOK 7, PRINCE2, and ISO 21500 across all major project management domains.</p>
+                            
+                            <div class="analysis-section" style="margin-top: 20px;">
+                                <div class="analysis-header">
+                                    <i class="fas fa-book" style="color: var(--secondary);"></i>
+                                    <h4>PMBOK 7 - Comprehensive Summary</h4>
+                                </div>
+                                <p><strong>Core Philosophy:</strong> Principles-based approach focusing on value delivery and adaptability</p>
+                                <p><strong>Key Points:</strong></p>
+                                <ul class="insight-list">
+                                    <li class="insight-item">12 guiding principles rather than prescribed processes</li>
+                                    <li class="insight-item">8 performance domains representing critical focus areas</li>
+                                    <li class="insight-item">Emphasis on tailoring approaches to specific project contexts</li>
+                                    <li class="insight-item">Value delivery system encompassing portfolios, programs, and projects</li>
+                                    <li class="insight-item">Models, methods, and artifacts as tools rather than requirements</li>
+                                    <li class="insight-item">Focus on outcomes rather than outputs</li>
+                                </ul>
+                            </div>
+
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-chess-board" style="color: var(--accent);"></i>
+                                    <h4>PRINCE2 - Comprehensive Summary</h4>
+                                </div>
+                                <p><strong>Core Philosophy:</strong> Process-based methodology with defined structure and controls</p>
+                                <p><strong>Key Points:</strong></p>
+                                <ul class="insight-list">
+                                    <li class="insight-item">7 principles guiding project management behavior</li>
+                                    <li class="insight-item">7 themes representing ongoing aspects of management</li>
+                                    <li class="insight-item">7 processes providing activity sequences</li>
+                                    <li class="insight-item">Product-based planning approach</li>
+                                    <li class="insight-item">Clear role definitions and responsibilities</li>
+                                    <li class="insight-item">Stage-based management with defined control points</li>
+                                </ul>
+                            </div>
+
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-globe" style="color: var(--success);"></i>
+                                    <h4>ISO 21500 - Comprehensive Summary</h4>
+                                </div>
+                                <p><strong>Core Philosophy:</strong> International standard providing adaptable guidance</p>
+                                <p><strong>Key Points:</strong></p>
+                                <ul class="insight-list">
+                                    <li class="insight-item">Process-based framework organized into 5 process groups</li>
+                                    <li class="insight-item">10 subject groups representing knowledge areas</li>
+                                    <li class="insight-item">Designed for integration with organizational systems</li>
+                                    <li class="insight-item">Compatibility with other ISO standards (ISO 9001, ISO 31000)</li>
+                                    <li class="insight-item">Focus on international best practices</li>
+                                    <li class="insight-item">Scalable for projects of any size or complexity</li>
+                                </ul>
+                            </div>
+
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-balance-scale"></i>
+                                    <h4>Comparative Analysis</h4>
+                                </div>
+                                <ul class="insight-list">
+                                    <li class="insight-item">
+                                        <span class="tag tag-similar">Commonality</span>
+                                        All standards emphasize structured approaches to project management
+                                    </li>
+                                    <li class="insight-item">
+                                        <span class="tag tag-different">PMBOK 7 Uniqueness</span>
+                                        Only standard with principles-based framework and performance domains
+                                    </li>
+                                    <li class="insight-item">
+                                        <span class="tag tag-different">PRINCE2 Uniqueness</span>
+                                        Most structured with defined processes, themes, and management products
+                                    </li>
+                                    <li class="insight-item">
+                                        <span class="tag tag-different">ISO 21500 Uniqueness</span>
+                                        Only internationally standardized framework with ISO compatibility
+                                    </li>
+                                    <li class="insight-item">
+                                        <span class="tag tag-similar">Integration Focus</span>
+                                        All standards recognize the importance of stakeholder management and quality
+                                    </li>
+                                    <li class="insight-item">
+                                        <span class="tag tag-different">Approach Variation</span>
+                                        PMBOK 7 focuses on principles, PRINCE2 on processes, ISO 21500 on standardization
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-card">
+                            <h3 style="margin-bottom: 15px;">Implementation Recommendations</h3>
+                            <p>Based on comprehensive analysis of all three standards, here are tailored recommendations for different organizational needs:</p>
+                            
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-lightbulb" style="color: var(--warning);"></i>
+                                    <h4>For Organizations Seeking Flexibility</h4>
+                                </div>
+                                <ul class="insight-list">
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        <strong>Use PMBOK 7's principles-based approach</strong> for maximum adaptability to changing project environments
+                                    </li>
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Implement <strong>tailored performance domains</strong> rather than prescribed processes
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-building" style="color: var(--primary);"></i>
+                                    <h4>For Regulated/Structured Environments</h4>
+                                </div>
+                                <ul class="insight-list">
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Adopt <strong>PRINCE2's structured methodology</strong> for clear accountability and documentation
+                                    </li>
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Establish <strong>formal stage boundaries</strong> and management products
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-industry" style="color: var(--dark);"></i>
+                                    <h4>For Large Organizations/Enterprises</h4>
+                                </div>
+                                <ul class="insight-list">
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Implement <strong>ISO 21500's standardized framework</strong> for consistency across projects
+                                    </li>
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Integrate with <strong>existing organizational management systems</strong>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-blender" style="color: var(--accent);"></i>
+                                    <h4>Hybrid Approach Recommendation</h4>
+                                </div>
+                                <ul class="insight-list">
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Combine <strong>PMBOK 7's principles</strong> with <strong>PRINCE2's structure</strong> for balanced flexibility and control
+                                    </li>
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Use <strong>ISO 21500</strong> as a reference for international best practices and standardization
+                                    </li>
+                                    <li class="insight-item">
+                                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                        Create a <strong>tailored project management framework</strong> that incorporates elements from all three standards
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="analysis-section">
+                                <div class="analysis-header">
+                                    <i class="fas fa-rocket" style="color: var(--danger);"></i>
+                                    <h4>Quick Start Recommendations</h4>
+                                </div>
+                                <ul class="insight-list">
+                                    <li class="insight-item">
+                                        <strong>Start with PMBOK 7 principles</strong> to establish foundational values
+                                    </li>
+                                    <li class="insight-item">
+                                        <strong>Implement PRINCE2 processes</strong> for day-to-day project control
+                                    </li>
+                                    <li class="insight-item">
+                                        <strong>Reference ISO 21500</strong> for international compliance and best practices
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;">
+                                <i class="fas fa-download"></i> Download Comprehensive Analysis Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="analyticsTab">
+                    <div class="insight-card">
+                        <h3 style="margin-bottom: 15px;">Usage Analytics</h3>
+                        <canvas id="analyticsChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="recommendationsTab">
+                    <div class="insight-card">
+                        <h3 style="margin-bottom: 15px;">Personalized Recommendations</h3>
+                        <div class="ai-response">
+                            <p>Based on your activity and comprehensive standards analysis, we recommend:</p>
+                            <ul class="insight-list" style="margin-top: 15px;">
+                                <li class="insight-item">
+                                    <strong>Hybrid Methodology Implementation:</strong> Combine PMBOK 7's principles with PRINCE2's structured processes for optimal flexibility and control. Use ISO 21500 for international standardization where required.
+                                </li>
+                                <li class="insight-item">
+                                    <strong>Tailored Risk Management:</strong> Implement PMBOK 7's principles-based risk approach for strategic oversight, PRINCE2's procedural approach for operational control, and reference ISO 21500 for compliance requirements.
+                                </li>
+                                <li class="insight-item">
+                                    <strong>Stakeholder Engagement Strategy:</strong> Use PMBOK 7's performance domains for relationship building, PRINCE2's communication management strategy for structured reporting, and ISO 21500's process approach for consistency.
+                                </li>
+                                <li class="insight-item">
+                                    <strong>Quality Management Framework:</strong> Adopt PMBOK 7's value-focused quality approach, PRINCE2's product-based quality planning, and ISO 21500's process standardization for comprehensive quality assurance.
+                                </li>
+                                <li class="insight-item">
+                                    <strong>Organizational Adaptation:</strong> Start with PMBOK 7 principles to establish cultural foundation, then layer PRINCE2 processes for operational control, using ISO 21500 as a benchmarking tool.
+                                </li>
+                            </ul>
+                            <div style="margin-top: 20px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 4px;">
+                                <h4>Next Steps</h4>
+                                <p>Use the Process Generator to create a customized framework that incorporates these recommendations based on your specific project requirements and organizational context.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Items Section -->
+            <div class="section" id="saved">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-bookmark"></i> Saved Items</h2>
+                </div>
+                <div id="savedItemsList">
+                    <!-- Saved items will appear here -->
+                    <p>No saved items yet. Bookmark content to see it here.</p>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>AI-Powered Project Standards Explorer & Comparison Platform | PMBOK 7, PRINCE2, ISO 21500</p>
+                <p>This is a demonstration interface. AI integration would be implemented in a production environment.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
