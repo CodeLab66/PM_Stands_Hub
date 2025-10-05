@@ -128,6 +128,78 @@
                 <div id="singleTopicComparison" class="comparison-view">
                     <div id="comparisonResults">
                         <!-- Single topic comparison will be loaded here -->
+            <!-- Dashboard Section -->
+            <div class="section active" id="dashboard">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-home"></i> Dashboard</h2>
+                </div>
+
+                <!-- Dashboard Cards -->
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">PMBOK 7</div>
+                            <div class="card-icon icon-pmbok">
+                                <i class="fas fa-book"></i>
+                            </div>
+                        </div>
+                        <p>The Project Management Body of Knowledge (PMBOK) Guide 7th Edition focuses on principles and performance domains.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag tag-similar">12 Principles</span>
+                            <span class="tag tag-different">8 Domains</span>
+                        </div>
+                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('pmbok')">Read PMBOK 7</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">PRINCE2</div>
+                            <div class="card-icon icon-prince2">
+                                <i class="fas fa-chess-board"></i>
+                            </div>
+                        </div>
+                        <p>PRINCE2 (Projects IN Controlled Environments) is a process-based method for effective project management.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag tag-similar">7 Principles</span>
+                            <span class="tag tag-different">7 Themes</span>
+                        </div>
+                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('prince2')">Read PRINCE2</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">ISO 21500</div>
+                            <div class="card-icon icon-iso">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                        </div>
+                        <p>ISO 21500 provides guidance on concepts and processes of project management that are important for project success.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag tag-similar">39 Processes</span>
+                            <span class="tag tag-different">10 Subjects</span>
+                        </div>
+                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('iso')">Read ISO 21500</button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3 class="section-title">Recent Activity</h3>
+                    </div>
+                    <div class="insight-list">
+                        <div class="insight-item">
+                            <i class="fas fa-search" style="color: var(--secondary); margin-right: 10px;"></i>
+                            You searched for "risk management approaches" - 2 hours ago
+                        </div>
+                        <div class="insight-item">
+                            <i class="fas fa-exchange-alt" style="color: var(--accent); margin-right: 10px;"></i>
+                            Compared "Quality Management" across all standards - 5 hours ago
+                        </div>
+                        <div class="insight-item">
+                            <i class="fas fa-cogs" style="color: var(--success); margin-right: 10px;"></i>
+                            Generated a process for software development project - 1 day ago
+                        </div>
                     </div>
                 </div>
             </div>
@@ -368,6 +440,67 @@
                             <div style="margin-top: 20px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 4px;">
                                 <h4>Next Steps</h4>
                                 <p>Use the Process Generator to create a customized framework that incorporates these recommendations based on your specific project requirements and organizational context.</p>
+            <!-- Standards Library Section -->
+            <div class="section" id="library">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-book"></i> Standards Library</h2>
+                    <p>Read and explore PMBOK 7, PRINCE2, and ISO 21500 standards directly in the application</p>
+                </div>
+                
+                <div class="book-reader">
+                    <div class="book-selector">
+                        <div class="book-option active" data-book="pmbok">
+                            <div class="book-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <h3>PMBOK 7</h3>
+                            <p>Project Management Body of Knowledge</p>
+                        </div>
+                        <div class="book-option" data-book="prince2">
+                            <div class="book-icon">
+                                <i class="fas fa-chess-board"></i>
+                            </div>
+                            <h3>PRINCE2</h3>
+                            <p>Projects IN Controlled Environments</p>
+                        </div>
+                        <div class="book-option" data-book="iso">
+                            <div class="book-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <h3>ISO 21500</h3>
+                            <p>Guidance on Project Management</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reader-container">
+                        <div class="book-toc">
+                            <div class="toc-title">Table of Contents</div>
+                            <div id="tocList">
+                                <!-- Table of contents will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="book-content">
+                            <div id="bookContent">
+                                <div class="chapter-title">Select a Standard to Begin Reading</div>
+                                <div class="book-text">
+                                    <p>Choose one of the project management standards from the options above to start reading.</p>
+                                    <p>You can navigate through chapters using the table of contents on the left.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="reader-controls">
+                                <button class="bookmark-btn" id="bookmarkBtn">
+                                    <i class="far fa-bookmark"></i> Bookmark This Page
+                                </button>
+                                <div>
+                                    <button class="btn btn-outline" id="prevChapter">
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </button>
+                                    <button class="btn btn-outline" id="nextChapter">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
