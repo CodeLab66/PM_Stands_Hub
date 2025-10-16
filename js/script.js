@@ -164,19 +164,32 @@ class ProcessGenerator {
     }
 
     downloadAsPDF(elementId, filename) {
-        if (window.jspdf && window.jspdf.jsPDF) {
-            const doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+        if (window.jspdf && window.jspdf.jsPDF && window.html2canvas) {
             const element = document.getElementById(elementId);
-            
-            doc.html(element, {
-                callback: function (pdf) {
-                    pdf.save(filename);
-                },
-                x: 32,
-                y: 32
+            if (!element) {
+                throw new Error('Element not found for PDF export');
+            }
+
+            // Use html2canvas for better rendering
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const doc = new window.jspdf.jsPDF('p', 'mm', 'a4');
+                const imgWidth = 190;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                doc.save(filename);
+            }).catch(error => {
+                console.error('PDF export error:', error);
+                throw new Error('PDF export failed: ' + error.message);
             });
         } else {
-            throw new Error('PDF export requires jsPDF library.');
+            throw new Error('PDF export requires jsPDF and html2canvas libraries.');
         }
     }
 }
@@ -210,6 +223,336 @@ class AppController {
         const savedItems = localStorage.getItem('savedItems');
         if (savedItems) {
             this.state.savedItems = JSON.parse(savedItems);
+        }
+    }
+
+    setupEventListeners() {
+        // AI Search
+        const aiSearchBtn = document.getElementById('aiSearchBtn');
+        const aiSearchInput = document.getElementById('aiSearchInput');
+        const globalSearchBtn = document.getElementById('globalSearchBtn');
+        const globalSearch = document.getElementById('globalSearch');
+        const generateProcessBtn = document.getElementById('generateProcess');
+        const apiKeyInput = document.getElementById('apiKey');
+        const testApiBtn = document.getElementById('testApiBtn');
+        const saveSettingsBtn = document.getElementById('saveSettings');
+        const riskSlider = document.getElementById('riskLevel');
+        const riskValue = document.getElementById('riskValue');
+
+        if (aiSearchBtn) aiSearchBtn.addEventListener('click', () => this.performSearch());
+        if (aiSearchInput) aiSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.performSearch();
+        });
+
+        if (globalSearchBtn) globalSearchBtn.addEventListener('click', () => this.performGlobalSearch());
+        if (globalSearch) globalSearch.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.performGlobalSearch();
+        });
+
+        if (generateProcessBtn) generateProcessBtn.addEventListener('click', () => this.generateProcess());
+
+        if (apiKeyInput) apiKeyInput.addEventListener('change', (e) => {
+            this.state.apiKey = e.target.value;
+            this.ai.apiKey = e.target.value;
+            localStorage.setItem('apiKey', this.state.apiKey);
+        });
+
+        if (testApiBtn) testApiBtn.addEventListener('click', () => this.testAPIConnection());
+        if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+
+        if (riskSlider && riskValue) {
+            riskSlider.addEventListener('input', () => {
+                riskValue.textContent = riskSlider.value;
+            });
+        }
+    }
+
+    async performSearch() {
+        const query = document.getElementById('aiSearchInput')?.value.trim();
+        if (!query) {
+            this.showToast('Please enter a search query');
+            return;
+        }
+
+        if (!this.state.apiKey) {
+            this.showToast('Please set your AI API key in Settings first');
+            this.showSection('settings');
+            return;
+        }
+
+        const selectedStandards = this.getSelectedStandards();
+        if (selectedStandards.length === 0) {
+            this.showToast('Please select at least one standard to search');
+            return;
+        }
+
+        const resultsContainer = document.getElementById('searchResults');
+        if (resultsContainer) {
+            resultsContainer.innerHTML = this.getLoadingHTML();
+        }
+
+        try {
+            const response = await this.ai.callAIAPI(query, selectedStandards);
+            this.displaySearchResults(query, response, selectedStandards, resultsContainer);
+            this.showToast('AI search completed!');
+        } catch (error) {
+            console.error('AI API Error:', error);
+            if (resultsContainer) {
+                resultsContainer.innerHTML = this.getErrorHTML(error);
+            }
+        }
+    }
+
+    async generateProcess() {
+        const parameters = this.getProcessParameters();
+        const standards = this.getProcessStandards();
+        
+        if (standards.length === 0) {
+            this.showToast('Please select at least one standard');
+            return;
+        }
+
+        parameters.standards = standards;
+
+        const output = document.getElementById('processOutput');
+        if (output) {
+            output.innerHTML = this.getLoadingHTML('AI is generating your custom process framework');
+        }
+
+        try {
+            const processHTML = await this.processGenerator.generateProcess(parameters);
+            if (output) {
+                output.innerHTML = processHTML + this.getPDFButtonHTML();
+            }
+            
+            // Setup PDF download
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => {
+                    try {
+                        this.processGenerator.downloadAsPDF('processDocument', 'Custom_Project_Management_Process_Framework.pdf');
+                        this.showToast('PDF download started!');
+                    } catch (error) {
+                        this.showToast('PDF export requires jsPDF library.');
+                    }
+                });
+            }
+
+            this.saveGeneratedProcess(parameters, processHTML);
+            this.showToast('Process generated successfully!');
+        } catch (error) {
+            console.error('Process generation error:', error);
+            if (output) {
+                output.innerHTML = this.getErrorHTML(error);
+            }
+        }
+    }
+
+    getProcessParameters() {
+        return {
+            projectType: document.getElementById('projectType')?.value || '',
+            teamSize: document.getElementById('teamSize')?.value || '',
+            duration: document.getElementById('projectDuration')?.value || '',
+            riskLevel: document.getElementById('riskLevel')?.value || '3'
+        };
+    }
+
+    getProcessStandards() {
+        const standards = [];
+        if (document.getElementById('processPmbok')?.checked) standards.push("PMBOK 7");
+        if (document.getElementById('processPrince2')?.checked) standards.push("PRINCE2");
+        if (document.getElementById('processIso')?.checked) standards.push("ISO 21500");
+        return standards;
+    }
+
+    getSelectedStandards() {
+        const standards = [];
+        if (document.getElementById('pmbokCheck')?.checked) standards.push('PMBOK 7');
+        if (document.getElementById('prince2Check')?.checked) standards.push('PRINCE2');
+        if (document.getElementById('isoCheck')?.checked) standards.push('ISO 21500');
+        return standards;
+    }
+
+    displaySearchResults(query, aiResponse, selectedStandards, container) {
+        if (!container) return;
+        
+        const formattedResponse = this.ai.formatAIResponse(aiResponse);
+        
+        let html = `<h3>AI Analysis: "${query}"</h3>`;
+        html += `<p><strong>Standards analyzed:</strong> ${selectedStandards.join(', ')}</p>`;
+        
+        html += `
+            <div class="result-item">
+                <div class="result-header">
+                    <span class="result-standard">AI Analysis</span>
+                    <span class="result-section">Based on ${selectedStandards.join(', ')}</span>
+                </div>
+                <div class="ai-response">
+                    ${formattedResponse}
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                    <span>Generated by AI</span>
+                    <button class="btn btn-outline save-result" data-content='${JSON.stringify({
+                        standard: selectedStandards.join(', '),
+                        query: query,
+                        solution: aiResponse,
+                        type: "ai_response"
+                    }).replace(/'/g, "&#39;")}'>
+                        <i class="fas fa-bookmark"></i> Save
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+        
+        // Add save functionality
+        const saveBtn = container.querySelector('.save-result');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', (e) => {
+                const content = JSON.parse(e.target.getAttribute('data-content').replace(/&#39;/g, "'"));
+                this.saveItem(content);
+            });
+        }
+    }
+
+    async testAPIConnection() {
+        if (!this.state.apiKey) {
+            this.showToast('Please set your API key first');
+            return false;
+        }
+
+        const button = document.getElementById('testApiBtn');
+        if (!button) return false;
+        
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        button.disabled = true;
+
+        try {
+            const isConnected = await this.ai.testConnection();
+            if (isConnected) {
+                this.showToast('API connection successful!');
+            } else {
+                this.showToast('API connection failed. Please check your API key.');
+            }
+            return isConnected;
+        } catch (error) {
+            this.showToast('API connection failed. Please check your API key and network connection.');
+            return false;
+        } finally {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    }
+
+    saveItem(item) {
+        this.state.savedItems.push({
+            ...item,
+            id: Date.now(),
+            savedAt: new Date().toLocaleString()
+        });
+        
+        localStorage.setItem('savedItems', JSON.stringify(this.state.savedItems));
+        this.showToast('Item saved successfully!');
+    }
+
+    saveGeneratedProcess(parameters, content) {
+        this.saveItem({
+            type: 'process',
+            title: `Custom Process for ${parameters.projectType} Project`,
+            content: content,
+            parameters: parameters,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    saveSettings() {
+        localStorage.setItem('apiKey', this.state.apiKey);
+        this.showToast('Settings saved successfully!');
+    }
+
+    performGlobalSearch() {
+        const query = document.getElementById('globalSearch')?.value.trim();
+        if (!query) {
+            this.showToast('Please enter a search query');
+            return;
+        }
+
+        this.showSection('search');
+        const aiSearchInput = document.getElementById('aiSearchInput');
+        if (aiSearchInput) {
+            aiSearchInput.value = query;
+        }
+        this.performSearch();
+    }
+
+    showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+        this.state.currentSection = sectionId;
+    }
+
+    showToast(message) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    getLoadingHTML(message = 'AI is thinking') {
+        return `
+            <div class="ai-response">
+                <div class="ai-thinking">
+                    <i class="fas fa-robot"></i>
+                    <span>${message}</span>
+                    <div class="ai-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getErrorHTML(error) {
+        return `
+            <div class="ai-response">
+                <div style="color: var(--danger);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error:</strong> ${error.message}
+                </div>
+                <p>Please check your API key and try again.</p>
+            </div>
+        `;
+    }
+
+    getPDFButtonHTML() {
+        return `
+            <div style="text-align:center; margin-top:18px;">
+                <button class="btn btn-primary" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> Download as PDF</button>
+            </div>
+        `;
+    }
+}
+
 // Comparison Engine and Insights Dashboard
 class ComparisonEngine {
     constructor() {
@@ -337,7 +680,7 @@ class ComparisonEngine {
                                 <li><strong>Fact-Based Decision Making:</strong> Quality decisions based on data and performance metrics</li>
                                 <li><strong>Continual Improvement:</strong> Structured approach for ongoing quality enhancement</li>
                             </ul>
-                            <p><span class="highlight-different>ISO 21500's strength lies in its integration capability with organizational quality management systems.</span></p>
+                            <p><span class="highlight-different">ISO 21500's strength lies in its integration capability with organizational quality management systems.</span></p>
                             <p><strong>Solution:</strong></p>
                             <ol>
                                 <li><strong>Quality Planning:</strong> Develop quality management plan aligned with organizational quality policy</li>
@@ -454,6 +797,342 @@ class ComparisonEngine {
                         }
                     }
                 }
+            }
+        };
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.initializeComparison();
+    }
+
+    setupEventListeners() {
+        // Topic selection in comparison
+        document.querySelectorAll('.topic-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const topic = button.getAttribute('data-topic');
+                
+                // Update active topic button
+                document.querySelectorAll('.topic-btn').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update comparison topic select
+                const comparisonTopic = document.getElementById('comparisonTopic');
+                if (comparisonTopic) {
+                    comparisonTopic.value = topic;
+                }
+                
+                // Perform comparison
+                this.performComparison(topic);
+            });
+        });
+
+        // Comparison button
+        const compareBtn = document.getElementById('compareBtn');
+        if (compareBtn) {
+            compareBtn.addEventListener('click', () => {
+                const comparisonTopic = document.getElementById('comparisonTopic');
+                const topic = comparisonTopic ? comparisonTopic.value : 'all';
+                this.performComparison(topic);
+            });
+        }
+
+        // Analyze All button
+        const analyzeAllBtn = document.getElementById('analyzeAllBtn');
+        if (analyzeAllBtn) {
+            analyzeAllBtn.addEventListener('click', () => {
+                const comparisonTopic = document.getElementById('comparisonTopic');
+                const topic = comparisonTopic ? comparisonTopic.value : 'all';
+                if (topic === 'all') {
+                    this.performAIComprehensiveAnalysis();
+                } else {
+                    this.performComparison(topic);
+                }
+            });
+        }
+
+        // Tabs in insights
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                const tabContent = document.getElementById(`${tabId}Tab`);
+                if (tabContent) {
+                    tabContent.classList.add('active');
+                }
+            });
+        });
+    }
+
+    initializeComparison() {
+        // Load default comparison (all topics)
+        this.performComparison('all');
+    }
+
+    performComparison(topic) {
+        const resultsContainer = document.getElementById('comparisonResults');
+        const comprehensiveContainer = document.getElementById('comprehensiveComparison');
+        const singleContainer = document.getElementById('singleTopicComparison');
+        
+        // Show loading
+        if (resultsContainer) {
+            resultsContainer.innerHTML = '<div class="spinner"></div>';
+        }
+        
+        // Simulate API call delay
+        setTimeout(() => {
+            if (topic === 'all') {
+                // Show comprehensive comparison
+                if (comprehensiveContainer) comprehensiveContainer.style.display = 'block';
+                if (singleContainer) singleContainer.style.display = 'none';
+                this.displayComprehensiveComparison();
+            } else {
+                // Show single topic comparison
+                if (comprehensiveContainer) comprehensiveContainer.style.display = 'none';
+                if (singleContainer) singleContainer.style.display = 'block';
+                
+                if (this.comparisonData[topic]) {
+                    this.displaySingleTopicComparison(topic, resultsContainer);
+                } else {
+                    if (resultsContainer) {
+                        resultsContainer.innerHTML = '<p>No comparison data available for this topic. Please select another topic.</p>';
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    displaySingleTopicComparison(topic, container) {
+        const data = this.comparisonData[topic];
+        let html = '';
+        
+        // PMBOK
+        html += `
+            <div class="standard-view">
+                <div class="standard-header" style="background: ${data.pmbok.color};">${data.pmbok.title}</div>
+                <div class="standard-content">${data.pmbok.content}</div>
+            </div>
+        `;
+        
+        // PRINCE2
+        html += `
+            <div class="standard-view">
+                <div class="standard-header" style="background: ${data.prince2.color};">${data.prince2.title}</div>
+                <div class="standard-content">${data.prince2.content}</div>
+            </div>
+        `;
+        
+        // ISO
+        html += `
+            <div class="standard-view">
+                <div class="standard-header" style="background: ${data.iso.color};">${data.iso.title}</div>
+                <div class="standard-content">${data.iso.content}</div>
+            </div>
+        `;
+        
+        if (container) {
+            container.innerHTML = html;
+        }
+    }
+
+    displayComprehensiveComparison() {
+        const container = document.getElementById('comprehensiveResults');
+        const data = this.comprehensiveComparisonData.all;
+        
+        if (!container) return;
+
+        let html = `
+            <div class="analysis-section">
+                <div class="analysis-header">
+                    <i class="fas fa-clone"></i>
+                    <h4>Overall Similarities</h4>
+                </div>
+                <ul>
+                    ${data.analysis.overallSimilarities.map(item => `<li><span class="highlight-similar">${item}</span></li>`).join('')}
+                </ul>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-header">
+                    <i class="fas fa-not-equal"></i>
+                    <h4>Key Differences</h4>
+                </div>
+                <ul>
+                    ${data.analysis.keyDifferences.map(item => `<li><span class="highlight-different">${item}</span></li>`).join('')}
+                </ul>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-header">
+                    <i class="fas fa-chart-pie"></i>
+                    <h4>Topic Coverage Analysis</h4>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 15px;">
+                    <div>
+                        <h5>High Coverage</h5>
+                        ${data.analysis.coverageAnalysis.high.map(topic => `<div class="tag tag-similar">${topic}</div>`).join('')}
+                    </div>
+                    <div>
+                        <h5>Medium Coverage</h5>
+                        ${data.analysis.coverageAnalysis.medium.map(topic => `<div class="tag tag-different">${topic}</div>`).join('')}
+                    </div>
+                    <div>
+                        <h5>Low Coverage</h5>
+                        ${data.analysis.coverageAnalysis.low.map(topic => `<div class="tag tag-unique">${topic}</div>`).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-header">
+                    <i class="fas fa-table"></i>
+                    <h4>Detailed Topic Comparison</h4>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Topic</th>
+                                <th>PMBOK 7</th>
+                                <th>PRINCE2</th>
+                                <th>ISO 21500</th>
+                                <th>Coverage Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        // Add rows for each topic
+        Object.entries(data.analysis.topics).forEach(([topicKey, topicData]) => {
+            const topicName = this.getTopicDisplayName(topicKey);
+            html += `
+                <tr>
+                    <td><strong>${topicName}</strong></td>
+                    <td>
+                        <div><strong>${topicData.pmbok.coverage}</strong></div>
+                        <small>${topicData.pmbok.approach}</small>
+                    </td>
+                    <td>
+                        <div><strong>${topicData.prince2.coverage}</strong></div>
+                        <small>${topicData.prince2.approach}</small>
+                    </td>
+                    <td>
+                        <div><strong>${topicData.iso.coverage}</strong></div>
+                        <small>${topicData.iso.approach}</small>
+                    </td>
+                    <td>
+                        <span class="tag tag-similar">All Standards</span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <h4>AI Recommendations</h4>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 15px;">
+                    <div class="ai-response">
+                        <h5>For PMBOK 7</h5>
+                        <p>Leverage principles-based approach for flexible, adaptive project environments. Focus on value delivery and stakeholder engagement.</p>
+                    </div>
+                    <div class="ai-response">
+                        <h5>For PRINCE2</h5>
+                        <p>Use structured methodology for controlled environments. Ideal for organizations requiring clear roles and formal processes.</p>
+                    </div>
+                    <div class="ai-response">
+                        <h5>For ISO 21500</h5>
+                        <p>Implement for international standardization and integration with other management systems. Good for multi-national organizations.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    getTopicDisplayName(topicKey) {
+        const topicNames = {
+            risk: "Risk Management",
+            quality: "Quality Management",
+            stakeholder: "Stakeholder Management",
+            scope: "Scope Management",
+            time: "Time Management",
+            cost: "Cost Management",
+            change: "Change Control",
+            communication: "Communication Management",
+            procurement: "Procurement Management",
+            integration: "Project Integration"
+        };
+        return topicNames[topicKey] || topicKey;
+    }
+
+    async performAIComprehensiveAnalysis() {
+        const container = document.getElementById('comprehensiveResults');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="ai-thinking">
+                <i class="fas fa-robot"></i>
+                <span>AI is conducting comprehensive analysis of all topics across all standards</span>
+                <div class="ai-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="spinner"></div>
+        `;
+
+        try {
+            // This would integrate with the main AI service
+            // For now, we'll use the static data
+            setTimeout(() => {
+                this.displayComprehensiveComparison();
+                this.showToast('AI comprehensive analysis completed!');
+            }, 2000);
+        } catch (error) {
+            console.error('Comprehensive analysis error:', error);
+            container.innerHTML = `
+                <div style="color: var(--danger);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Error:</strong> Failed to generate comprehensive analysis. ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    showToast(message) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+}
+
 // UI Components and Library Management
 class LibraryManager {
     constructor() {
@@ -709,302 +1388,6 @@ class LibraryManager {
     }
 
     init() {
-        this.setupEventListeners();
-        this.initializeComparison();
-    }
-
-    setupEventListeners() {
-        // Topic selection in comparison
-        document.querySelectorAll('.topic-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const topic = button.getAttribute('data-topic');
-                
-                // Update active topic button
-                document.querySelectorAll('.topic-btn').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                // Update comparison topic select
-                document.getElementById('comparisonTopic').value = topic;
-                
-                // Perform comparison
-                this.performComparison(topic);
-            });
-        });
-
-        // Comparison button
-        document.getElementById('compareBtn').addEventListener('click', () => {
-            const topic = document.getElementById('comparisonTopic').value;
-            this.performComparison(topic);
-        });
-
-        // Analyze All button
-        document.getElementById('analyzeAllBtn').addEventListener('click', () => {
-            const topic = document.getElementById('comparisonTopic').value;
-            if (topic === 'all') {
-                this.performAIComprehensiveAnalysis();
-            } else {
-                this.performComparison(topic);
-            }
-        });
-
-        // Tabs in insights
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.getAttribute('data-tab');
-                
-                // Update active tab
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Show corresponding content
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                document.getElementById(`${tabId}Tab`).classList.add('active');
-            });
-        });
-    }
-
-    initializeComparison() {
-        // Load default comparison (all topics)
-        this.performComparison('all');
-    }
-
-    performComparison(topic) {
-        const resultsContainer = document.getElementById('comparisonResults');
-        const comprehensiveContainer = document.getElementById('comprehensiveComparison');
-        const singleContainer = document.getElementById('singleTopicComparison');
-        
-        // Show loading
-        if (resultsContainer) {
-            resultsContainer.innerHTML = '<div class="spinner"></div>';
-        }
-        
-        // Simulate API call delay
-        setTimeout(() => {
-            if (topic === 'all') {
-                // Show comprehensive comparison
-                if (comprehensiveContainer) comprehensiveContainer.style.display = 'block';
-                if (singleContainer) singleContainer.style.display = 'none';
-                this.displayComprehensiveComparison();
-            } else {
-                // Show single topic comparison
-                if (comprehensiveContainer) comprehensiveContainer.style.display = 'none';
-                if (singleContainer) singleContainer.style.display = 'block';
-                
-                if (this.comparisonData[topic]) {
-                    this.displaySingleTopicComparison(topic, resultsContainer);
-                } else {
-                    if (resultsContainer) {
-                        resultsContainer.innerHTML = '<p>No comparison data available for this topic. Please select another topic.</p>';
-                    }
-                }
-            }
-        }, 1000);
-    }
-
-    displaySingleTopicComparison(topic, container) {
-        const data = this.comparisonData[topic];
-        let html = '';
-        
-        // PMBOK
-        html += `
-            <div class="standard-view">
-                <div class="standard-header" style="background: ${data.pmbok.color};">${data.pmbok.title}</div>
-                <div class="standard-content">${data.pmbok.content}</div>
-            </div>
-        `;
-        
-        // PRINCE2
-        html += `
-            <div class="standard-view">
-                <div class="standard-header" style="background: ${data.prince2.color};">${data.prince2.title}</div>
-                <div class="standard-content">${data.prince2.content}</div>
-            </div>
-        `;
-        
-        // ISO
-        html += `
-            <div class="standard-view">
-                <div class="standard-header" style="background: ${data.iso.color};">${data.iso.title}</div>
-                <div class="standard-content">${data.iso.content}</div>
-            </div>
-        `;
-        
-        if (container) {
-            container.innerHTML = html;
-        }
-    }
-
-    displayComprehensiveComparison() {
-        const container = document.getElementById('comprehensiveResults');
-        const data = this.comprehensiveComparisonData.all;
-        
-        if (!container) return;
-
-        let html = `
-            <div class="analysis-section">
-                <div class="analysis-header">
-                    <i class="fas fa-clone"></i>
-                    <h4>Overall Similarities</h4>
-                </div>
-                <ul>
-                    ${data.analysis.overallSimilarities.map(item => `<li><span class="highlight-similar">${item}</span></li>`).join('')}
-                </ul>
-            </div>
-
-            <div class="analysis-section">
-                <div class="analysis-header">
-                    <i class="fas fa-not-equal"></i>
-                    <h4>Key Differences</h4>
-                </div>
-                <ul>
-                    ${data.analysis.keyDifferences.map(item => `<li><span class="highlight-different">${item}</span></li>`).join('')}
-                </ul>
-            </div>
-
-            <div class="analysis-section">
-                <div class="analysis-header">
-                    <i class="fas fa-chart-pie"></i>
-                    <h4>Topic Coverage Analysis</h4>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 15px;">
-                    <div>
-                        <h5>High Coverage</h5>
-                        ${data.analysis.coverageAnalysis.high.map(topic => `<div class="tag tag-similar">${topic}</div>`).join('')}
-                    </div>
-                    <div>
-                        <h5>Medium Coverage</h5>
-                        ${data.analysis.coverageAnalysis.medium.map(topic => `<div class="tag tag-different">${topic}</div>`).join('')}
-                    </div>
-                    <div>
-                        <h5>Low Coverage</h5>
-                        ${data.analysis.coverageAnalysis.low.map(topic => `<div class="tag tag-unique">${topic}</div>`).join('')}
-                    </div>
-                </div>
-            </div>
-
-            <div class="analysis-section">
-                <div class="analysis-header">
-                    <i class="fas fa-table"></i>
-                    <h4>Detailed Topic Comparison</h4>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th>Topic</th>
-                                <th>PMBOK 7</th>
-                                <th>PRINCE2</th>
-                                <th>ISO 21500</th>
-                                <th>Coverage Summary</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-        `;
-
-        // Add rows for each topic
-        Object.entries(data.analysis.topics).forEach(([topicKey, topicData]) => {
-            const topicName = this.getTopicDisplayName(topicKey);
-            html += `
-                <tr>
-                    <td><strong>${topicName}</strong></td>
-                    <td>
-                        <div><strong>${topicData.pmbok.coverage}</strong></div>
-                        <small>${topicData.pmbok.approach}</small>
-                    </td>
-                    <td>
-                        <div><strong>${topicData.prince2.coverage}</strong></div>
-                        <small>${topicData.prince2.approach}</small>
-                    </td>
-                    <td>
-                        <div><strong>${topicData.iso.coverage}</strong></div>
-                        <small>${topicData.iso.approach}</small>
-                    </td>
-                    <td>
-                        <span class="tag tag-similar">All Standards</span>
-                    </td>
-                </tr>
-            `;
-        });
-
-        html += `
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="analysis-section">
-                <div class="analysis-header">
-                    <i class="fas fa-lightbulb"></i>
-                    <h4>AI Recommendations</h4>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 15px;">
-                    <div class="ai-response">
-                        <h5>For PMBOK 7</h5>
-                        <p>Leverage principles-based approach for flexible, adaptive project environments. Focus on value delivery and stakeholder engagement.</p>
-                    </div>
-                    <div class="ai-response">
-                        <h5>For PRINCE2</h5>
-                        <p>Use structured methodology for controlled environments. Ideal for organizations requiring clear roles and formal processes.</p>
-                    </div>
-                    <div class="ai-response">
-                        <h5>For ISO 21500</h5>
-                        <p>Implement for international standardization and integration with other management systems. Good for multi-national organizations.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        container.innerHTML = html;
-    }
-
-    getTopicDisplayName(topicKey) {
-        const topicNames = {
-            risk: "Risk Management",
-            quality: "Quality Management",
-            stakeholder: "Stakeholder Management",
-            scope: "Scope Management",
-            time: "Time Management",
-            cost: "Cost Management",
-            change: "Change Control",
-            communication: "Communication Management",
-            procurement: "Procurement Management",
-            integration: "Project Integration"
-        };
-        return topicNames[topicKey] || topicKey;
-    }
-
-    async performAIComprehensiveAnalysis() {
-        const container = document.getElementById('comprehensiveResults');
-        if (!container) return;
-        
-        container.innerHTML = `
-            <div class="ai-thinking">
-                <i class="fas fa-robot"></i>
-                <span>AI is conducting comprehensive analysis of all topics across all standards</span>
-                <div class="ai-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-            <div class="spinner"></div>
-        `;
-
-        try {
-            // This would integrate with the main AI service
-            // For now, we'll use the static data
-            setTimeout(() => {
-                this.displayComprehensiveComparison();
-                this.showToast('AI comprehensive analysis completed!');
-            }, 2000);
-        } catch (error) {
-            console.error('Comprehensive analysis error:', error);
-            container.innerHTML = `
-                <div style="color: var(--danger);">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Error:</strong> Failed to generate comprehensive analysis. ${error.message}
-                </div>
-            `;
         this.loadBookmarks();
         this.setupEventListeners();
         this.initializeLibrary();
@@ -1018,247 +1401,6 @@ class LibraryManager {
     }
 
     setupEventListeners() {
-        // AI Search
-        document.getElementById('aiSearchBtn').addEventListener('click', () => this.performSearch());
-        document.getElementById('aiSearchInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.performSearch();
-        });
-
-        // Global Search
-        document.getElementById('globalSearchBtn').addEventListener('click', () => this.performGlobalSearch());
-        document.getElementById('globalSearch').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.performGlobalSearch();
-        });
-
-        // Process Generation
-        document.getElementById('generateProcess').addEventListener('click', () => this.generateProcess());
-
-        // Settings
-        document.getElementById('apiKey').addEventListener('change', (e) => {
-            this.state.apiKey = e.target.value;
-            this.ai.apiKey = e.target.value;
-            localStorage.setItem('apiKey', this.state.apiKey);
-        });
-
-        document.getElementById('testApiBtn').addEventListener('click', () => this.testAPIConnection());
-        document.getElementById('saveSettings').addEventListener('click', () => this.saveSettings());
-
-        // Risk slider
-        const riskSlider = document.getElementById('riskLevel');
-        const riskValue = document.getElementById('riskValue');
-        riskSlider.addEventListener('input', () => {
-            riskValue.textContent = riskSlider.value;
-        });
-    }
-
-    async performSearch() {
-        const query = document.getElementById('aiSearchInput').value.trim();
-        if (!query) {
-            this.showToast('Please enter a search query');
-            return;
-        }
-
-        if (!this.state.apiKey) {
-            this.showToast('Please set your AI API key in Settings first');
-            this.showSection('settings');
-            return;
-        }
-
-        const selectedStandards = this.getSelectedStandards();
-        if (selectedStandards.length === 0) {
-            this.showToast('Please select at least one standard to search');
-            return;
-        }
-
-        const resultsContainer = document.getElementById('searchResults');
-        resultsContainer.innerHTML = this.getLoadingHTML();
-
-        try {
-            const response = await this.ai.callAIAPI(query, selectedStandards);
-            this.displaySearchResults(query, response, selectedStandards, resultsContainer);
-            this.showToast('AI search completed!');
-        } catch (error) {
-            console.error('AI API Error:', error);
-            resultsContainer.innerHTML = this.getErrorHTML(error);
-        }
-    }
-
-    async generateProcess() {
-        const parameters = this.getProcessParameters();
-        const standards = this.getProcessStandards();
-        
-        if (standards.length === 0) {
-            this.showToast('Please select at least one standard');
-            return;
-        }
-
-        parameters.standards = standards;
-
-        const output = document.getElementById('processOutput');
-        output.innerHTML = this.getLoadingHTML('AI is generating your custom process framework');
-
-        try {
-            const processHTML = await this.processGenerator.generateProcess(parameters);
-            output.innerHTML = processHTML + this.getPDFButtonHTML();
-            
-            // Setup PDF download
-            document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-                try {
-                    this.processGenerator.downloadAsPDF('processDocument', 'Custom_Project_Management_Process_Framework.pdf');
-                    this.showToast('PDF download started!');
-                } catch (error) {
-                    this.showToast('PDF export requires jsPDF library.');
-                }
-            });
-
-            this.saveGeneratedProcess(parameters, processHTML);
-            this.showToast('Process generated successfully!');
-        } catch (error) {
-            console.error('Process generation error:', error);
-            output.innerHTML = this.getErrorHTML(error);
-        }
-    }
-
-    getProcessParameters() {
-        return {
-            projectType: document.getElementById('projectType').value,
-            teamSize: document.getElementById('teamSize').value,
-            duration: document.getElementById('projectDuration').value,
-            riskLevel: document.getElementById('riskLevel').value
-        };
-    }
-
-    getProcessStandards() {
-        const standards = [];
-        if (document.getElementById('processPmbok').checked) standards.push("PMBOK 7");
-        if (document.getElementById('processPrince2').checked) standards.push("PRINCE2");
-        if (document.getElementById('processIso').checked) standards.push("ISO 21500");
-        return standards;
-    }
-
-    getSelectedStandards() {
-        const standards = [];
-        if (document.getElementById('pmbokCheck').checked) standards.push('PMBOK 7');
-        if (document.getElementById('prince2Check').checked) standards.push('PRINCE2');
-        if (document.getElementById('isoCheck').checked) standards.push('ISO 21500');
-        return standards;
-    }
-
-    displaySearchResults(query, aiResponse, selectedStandards, container) {
-        const formattedResponse = this.ai.formatAIResponse(aiResponse);
-        
-        let html = `<h3>AI Analysis: "${query}"</h3>`;
-        html += `<p><strong>Standards analyzed:</strong> ${selectedStandards.join(', ')}</p>`;
-        
-        html += `
-            <div class="result-item">
-                <div class="result-header">
-                    <span class="result-standard">AI Analysis</span>
-                    <span class="result-section">Based on ${selectedStandards.join(', ')}</span>
-                </div>
-                <div class="ai-response">
-                    ${formattedResponse}
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                    <span>Generated by AI</span>
-                    <button class="btn btn-outline save-result" data-content='${JSON.stringify({
-                        standard: selectedStandards.join(', '),
-                        query: query,
-                        solution: aiResponse,
-                        type: "ai_response"
-                    }).replace(/'/g, "&#39;")}'>
-                        <i class="fas fa-bookmark"></i> Save
-                    </button>
-                </div>
-            </div>
-        `;
-
-        container.innerHTML = html;
-        
-        // Add save functionality
-        document.querySelector('.save-result').addEventListener('click', (e) => {
-            const content = JSON.parse(e.target.getAttribute('data-content').replace(/&#39;/g, "'"));
-            this.saveItem(content);
-        });
-    }
-
-    async testAPIConnection() {
-        if (!this.state.apiKey) {
-            this.showToast('Please set your API key first');
-            return false;
-        }
-
-        const button = document.getElementById('testApiBtn');
-        const originalText = button.innerHTML;
-        
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
-        button.disabled = true;
-
-        try {
-            const isConnected = await this.ai.testConnection();
-            if (isConnected) {
-                this.showToast('API connection successful!');
-            } else {
-                this.showToast('API connection failed. Please check your API key.');
-            }
-            return isConnected;
-        } catch (error) {
-            this.showToast('API connection failed. Please check your API key and network connection.');
-            return false;
-        } finally {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    }
-
-    saveItem(item) {
-        this.state.savedItems.push({
-            ...item,
-            id: Date.now(),
-            savedAt: new Date().toLocaleString()
-        });
-        
-        localStorage.setItem('savedItems', JSON.stringify(this.state.savedItems));
-        this.showToast('Item saved successfully!');
-    }
-
-    saveGeneratedProcess(parameters, content) {
-        this.saveItem({
-            type: 'process',
-            title: `Custom Process for ${parameters.projectType} Project`,
-            content: content,
-            parameters: parameters,
-            timestamp: new Date().toISOString()
-        });
-    }
-
-    saveSettings() {
-        localStorage.setItem('apiKey', this.state.apiKey);
-        this.showToast('Settings saved successfully!');
-    }
-
-    performGlobalSearch() {
-        const query = document.getElementById('globalSearch').value.trim();
-        if (!query) {
-            this.showToast('Please enter a search query');
-            return;
-        }
-
-        this.showSection('search');
-        document.getElementById('aiSearchInput').value = query;
-        this.performSearch();
-    }
-
-    showSection(sectionId) {
-        document.querySelectorAll('.section').forEach(section => {
-            section.classList.remove('active');
-        });
-        document.getElementById(sectionId).classList.add('active');
-        this.state.currentSection = sectionId;
-    }
-
-    showToast(message) {
-        const toast = document.getElementById('toast');
         // Book selection
         document.querySelectorAll('.book-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -1268,9 +1410,13 @@ class LibraryManager {
         });
 
         // Reader controls
-        document.getElementById('prevChapter').addEventListener('click', () => this.prevChapter());
-        document.getElementById('nextChapter').addEventListener('click', () => this.nextChapter());
-        document.getElementById('bookmarkBtn').addEventListener('click', () => this.toggleBookmark());
+        const prevChapter = document.getElementById('prevChapter');
+        const nextChapter = document.getElementById('nextChapter');
+        const bookmarkBtn = document.getElementById('bookmarkBtn');
+
+        if (prevChapter) prevChapter.addEventListener('click', () => this.prevChapter());
+        if (nextChapter) nextChapter.addEventListener('click', () => this.nextChapter());
+        if (bookmarkBtn) bookmarkBtn.addEventListener('click', () => this.toggleBookmark());
 
         // Navigation
         document.querySelectorAll('.nav-links li').forEach(link => {
@@ -1325,7 +1471,7 @@ class LibraryManager {
         const tocList = document.getElementById('tocList');
         const book = this.bookContent[bookId];
         
-        if (!book) return;
+        if (!book || !tocList) return;
 
         let html = '';
         book.chapters.forEach((chapter, index) => {
@@ -1359,6 +1505,8 @@ class LibraryManager {
         this.currentChapter = chapterIndex;
         
         const bookContentElement = document.getElementById('bookContent');
+        if (!bookContentElement) return;
+        
         bookContentElement.innerHTML = `
             <div class="chapter-title">${chapter.title}</div>
             <div class="book-text">${chapter.content}</div>
@@ -1474,6 +1622,16 @@ class LibraryManager {
             toast.classList.remove('show');
         }, 3000);
     }
+
+    // Public methods for global access
+    selectBookGlobal(bookId) {
+        this.showSection('library');
+        this.selectBook(bookId);
+    }
+
+    showSectionGlobal(sectionId) {
+        this.showSection(sectionId);
+    }
 }
 
 // Insights Dashboard Manager
@@ -1494,6 +1652,12 @@ class InsightsManager {
     initializeAnalyticsChart() {
         const ctx = document.getElementById('analyticsChart');
         if (!ctx) return;
+
+        // Check if Chart is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded');
+            return;
+        }
 
         new Chart(ctx.getContext('2d'), {
             type: 'bar',
@@ -1605,10 +1769,10 @@ class SavedItemsManager {
                     <p><strong>${item.title || 'Untitled'}</strong></p>
                     <p>${item.content ? item.content.substring(0, 150) + '...' : ''}</p>
                     <div style="margin-top: 10px;">
-                        <button class="btn btn-outline" onclick="savedItemsManager.removeSavedItem(${item.id})">
+                        <button class="btn btn-outline remove-saved-item" data-id="${item.id}">
                             <i class="fas fa-trash"></i> Remove
                         </button>
-                        <button class="btn btn-primary" onclick="savedItemsManager.viewSavedItem(${item.id})" style="margin-left: 10px;">
+                        <button class="btn btn-primary view-saved-item" data-id="${item.id}" style="margin-left: 10px;">
                             <i class="fas fa-eye"></i> View
                         </button>
                     </div>
@@ -1617,6 +1781,21 @@ class SavedItemsManager {
         });
         
         container.innerHTML = html;
+
+        // Add event listeners to buttons
+        document.querySelectorAll('.remove-saved-item').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                this.removeSavedItem(id);
+            });
+        });
+
+        document.querySelectorAll('.view-saved-item').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                this.viewSavedItem(id);
+            });
+        });
     }
 
     removeSavedItem(id) {
@@ -1661,48 +1840,6 @@ class SavedItemsManager {
         }, 3000);
     }
 
-    getLoadingHTML(message = 'AI is thinking') {
-        return `
-            <div class="ai-response">
-                <div class="ai-thinking">
-                    <i class="fas fa-robot"></i>
-                    <span>${message}</span>
-                    <div class="ai-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    getErrorHTML(error) {
-        return `
-            <div class="ai-response">
-                <div style="color: var(--danger);">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Error:</strong> ${error.message}
-                </div>
-                <p>Please check your API key and try again.</p>
-            </div>
-        `;
-    }
-
-    getPDFButtonHTML() {
-        return `
-            <div style="text-align:center; margin-top:18px;">
-                <button class="btn btn-primary" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> Download as PDF</button>
-            </div>
-        `;
-    }
-}
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new AppController();
-    window.app.init();
-});
     // Public method to add items from other components
     addSavedItem(item) {
         const newItem = {
@@ -1714,27 +1851,6 @@ document.addEventListener('DOMContentLoaded', () => {
         this.savedItems.unshift(newItem);
         localStorage.setItem('savedItems', JSON.stringify(this.savedItems));
         this.updateSavedItemsList();
-    }
-}
-
-// Initialize all components
-document.addEventListener('DOMContentLoaded', () => {
-    window.comparisonEngine = new ComparisonEngine();
-    window.insightsManager = new InsightsManager();
-    window.savedItemsManager = new SavedItemsManager();
-    
-    window.comparisonEngine.init();
-    window.insightsManager.init();
-    window.savedItemsManager.init();
-
-    // Public methods for global access
-    selectBookGlobal(bookId) {
-        this.showSection('library');
-        this.selectBook(bookId);
-    }
-
-    showSectionGlobal(sectionId) {
-        this.showSection(sectionId);
     }
 }
 
@@ -1809,15 +1925,35 @@ class DashboardManager {
     }
 }
 
-// Initialize the UI components
+// Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize main app controller
+    window.app = new AppController();
+    window.app.init();
+
+    // Initialize other managers
+    window.comparisonEngine = new ComparisonEngine();
+    window.insightsManager = new InsightsManager();
+    window.savedItemsManager = new SavedItemsManager();
     window.libraryManager = new LibraryManager();
     window.dashboardManager = new DashboardManager();
     
+    window.comparisonEngine.init();
+    window.insightsManager.init();
+    window.savedItemsManager.init();
     window.libraryManager.init();
     window.dashboardManager.init();
 
     // Global functions for HTML onclick handlers
-    window.selectBook = (bookId) => window.libraryManager.selectBookGlobal(bookId);
-    window.showSection = (sectionId) => window.libraryManager.showSectionGlobal(sectionId);
+    window.selectBook = (bookId) => {
+        if (window.libraryManager) {
+            window.libraryManager.selectBookGlobal(bookId);
+        }
+    };
+    
+    window.showSection = (sectionId) => {
+        if (window.libraryManager) {
+            window.libraryManager.showSectionGlobal(sectionId);
+        }
+    };
 });

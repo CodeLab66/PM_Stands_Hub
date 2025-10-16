@@ -24,6 +24,9 @@
                 <li data-section="compare"><a href="#"><i class="fas fa-exchange-alt"></i> Compare Standards</a></li>
                 <li data-section="library"><a href="#"><i class="fas fa-book"></i> Standards Library</a></li>
                 <li data-section="process"><a href="#"><i class="fas fa-cogs"></i> Process Generator</a></li>
+                <!-- NEW: Phase 2 Sections -->
+                <li data-section="scenarios"><a href="#"><i class="fas fa-rocket"></i> Project Scenarios</a></li>
+                <li data-section="process-design"><a href="#"><i class="fas fa-file-alt"></i> Process Design</a></li>
                 <li data-section="insights"><a href="#"><i class="fas fa-chart-bar"></i> Insights Dashboard</a></li>
                 <li data-section="saved"><a href="#"><i class="fas fa-bookmark"></i> Saved Items</a></li>
                 <li data-section="settings"><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
@@ -39,6 +42,82 @@
                 </div>
                 <div class="user-actions">
                     <button class="btn btn-outline" id="refreshData"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="section active" id="dashboard">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-home"></i> Dashboard</h2>
+                </div>
+
+                <!-- Dashboard Cards -->
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">PMBOK 7</div>
+                            <div class="card-icon icon-pmbok">
+                                <i class="fas fa-book"></i>
+                            </div>
+                        </div>
+                        <p>The Project Management Body of Knowledge (PMBOK) Guide 7th Edition focuses on principles and performance domains.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag tag-similar">12 Principles</span>
+                            <span class="tag tag-different">8 Domains</span>
+                        </div>
+                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('pmbok')">Read PMBOK 7</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">PRINCE2</div>
+                            <div class="card-icon icon-prince2">
+                                <i class="fas fa-chess-board"></i>
+                            </div>
+                        </div>
+                        <p>PRINCE2 (Projects IN Controlled Environments) is a process-based method for effective project management.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag tag-similar">7 Principles</span>
+                            <span class="tag tag-different">7 Themes</span>
+                        </div>
+                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('prince2')">Read PRINCE2</button>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">ISO 21500</div>
+                            <div class="card-icon icon-iso">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                        </div>
+                        <p>ISO 21500 provides guidance on concepts and processes of project management that are important for project success.</p>
+                        <div style="margin-top: 15px;">
+                            <span class="tag tag-similar">39 Processes</span>
+                            <span class="tag tag-different">10 Subjects</span>
+                        </div>
+                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('iso')">Read ISO 21500</button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3 class="section-title">Recent Activity</h3>
+                    </div>
+                    <div class="insight-list">
+                        <div class="insight-item">
+                            <i class="fas fa-search" style="color: var(--secondary); margin-right: 10px;"></i>
+                            You searched for "risk management approaches" - 2 hours ago
+                        </div>
+                        <div class="insight-item">
+                            <i class="fas fa-exchange-alt" style="color: var(--accent); margin-right: 10px;"></i>
+                            Compared "Quality Management" across all standards - 5 hours ago
+                        </div>
+                        <div class="insight-item">
+                            <i class="fas fa-cogs" style="color: var(--success); margin-right: 10px;"></i>
+                            Generated a process for software development project - 1 day ago
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -65,95 +144,6 @@
                 </div>
             </div>
 
-            <!-- Process Generator Section -->
-            <div class="section" id="process">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-cogs"></i> AI Process Generator</h2>
-                </div>
-                
-                <div class="parameter-grid">
-                    <div class="form-group">
-                        <label class="form-label">Project Type</label>
-                        <select class="form-control" id="projectType">
-                            <option value="software">Software Development</option>
-                            <option value="construction">Construction</option>
-                            <option value="research">Research & Development</option>
-                            <option value="marketing">Marketing Campaign</option>
-                            <option value="change">Organizational Change</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Team Size</label>
-                        <select class="form-control" id="teamSize">
-                            <option value="small">Small (1-5 people)</option>
-                            <option value="medium">Medium (6-15 people)</option>
-                            <option value="large">Large (16-50 people)</option>
-                            <option value="xlarge">Very Large (50+ people)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Project Duration</label>
-                        <select class="form-control" id="projectDuration">
-                            <option value="short">Short-term (less than 3 months)</option>
-                            <option value="medium">Medium-term (3-12 months)</option>
-                            <option value="long">Long-term (1-2 years)</option>
-                            <option value="xlong">Very Long-term (2+ years)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Risk Level</label>
-                        <div class="slider-container">
-                            <input type="range" min="1" max="5" value="3" class="slider" id="riskLevel">
-                            <span class="slider-value" id="riskValue">3</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Preferred Standards (select one or more)</label>
-                    <div style="display: flex; gap: 15px;">
-                        <label><input type="checkbox" id="processPmbok" checked> PMBOK 7</label>
-                        <label><input type="checkbox" id="processPrince2"> PRINCE2</label>
-                        <label><input type="checkbox" id="processIso" checked> ISO 21500</label>
-                    </div>
-                </div>
-                
-                <button class="btn btn-primary" id="generateProcess" style="width: 100%; padding: 15px;">
-                    <i class="fas fa-magic"></i> Generate Custom Process Framework
-                </button>
-
-                <div id="processOutput" class="process-output">
-                    <!-- Generated process will appear here -->
-                </div>
-            </div>
-
-            <!-- Settings Section -->
-            <div class="section" id="settings">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-cog"></i> Settings</h2>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">AI API Key</label>
-                    <input type="password" class="form-control" id="apiKey" placeholder="Enter your AI API key">
-                    <small>Your API key is stored locally and never shared with our servers.</small>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Default Standards</label>
-                    <div style="display: flex; gap: 15px;">
-                        <label><input type="checkbox" checked> PMBOK 7</label>
-                        <label><input type="checkbox" checked> PRINCE2</label>
-                        <label><input type="checkbox" checked> ISO 21500</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <button class="btn btn-outline" id="testApiBtn">
-                        <i class="fas fa-vial"></i> Test API Connection
-                    </button>
-                </div>
-                <button class="btn btn-primary" id="saveSettings">Save Settings</button>
             <!-- Comparison Section -->
             <div class="section" id="compare">
                 <div class="section-header">
@@ -243,77 +233,278 @@
                 <div id="singleTopicComparison" class="comparison-view">
                     <div id="comparisonResults">
                         <!-- Single topic comparison will be loaded here -->
-            <!-- Dashboard Section -->
-            <div class="section active" id="dashboard">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-home"></i> Dashboard</h2>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Dashboard Cards -->
-                <div class="dashboard-cards">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">PMBOK 7</div>
-                            <div class="card-icon icon-pmbok">
+            <!-- Standards Library Section -->
+            <div class="section" id="library">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-book"></i> Standards Library</h2>
+                    <p>Read and explore PMBOK 7, PRINCE2, and ISO 21500 standards directly in the application</p>
+                </div>
+                
+                <div class="book-reader">
+                    <div class="book-selector">
+                        <div class="book-option active" data-book="pmbok">
+                            <div class="book-icon">
                                 <i class="fas fa-book"></i>
                             </div>
+                            <h3>PMBOK 7</h3>
+                            <p>Project Management Body of Knowledge</p>
                         </div>
-                        <p>The Project Management Body of Knowledge (PMBOK) Guide 7th Edition focuses on principles and performance domains.</p>
-                        <div style="margin-top: 15px;">
-                            <span class="tag tag-similar">12 Principles</span>
-                            <span class="tag tag-different">8 Domains</span>
-                        </div>
-                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('pmbok')">Read PMBOK 7</button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">PRINCE2</div>
-                            <div class="card-icon icon-prince2">
+                        <div class="book-option" data-book="prince2">
+                            <div class="book-icon">
                                 <i class="fas fa-chess-board"></i>
                             </div>
+                            <h3>PRINCE2</h3>
+                            <p>Projects IN Controlled Environments</p>
                         </div>
-                        <p>PRINCE2 (Projects IN Controlled Environments) is a process-based method for effective project management.</p>
-                        <div style="margin-top: 15px;">
-                            <span class="tag tag-similar">7 Principles</span>
-                            <span class="tag tag-different">7 Themes</span>
-                        </div>
-                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('prince2')">Read PRINCE2</button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">ISO 21500</div>
-                            <div class="card-icon icon-iso">
+                        <div class="book-option" data-book="iso">
+                            <div class="book-icon">
                                 <i class="fas fa-globe"></i>
                             </div>
+                            <h3>ISO 21500</h3>
+                            <p>Guidance on Project Management</p>
                         </div>
-                        <p>ISO 21500 provides guidance on concepts and processes of project management that are important for project success.</p>
-                        <div style="margin-top: 15px;">
-                            <span class="tag tag-similar">39 Processes</span>
-                            <span class="tag tag-different">10 Subjects</span>
+                    </div>
+                    
+                    <div class="reader-container">
+                        <div class="book-toc">
+                            <div class="toc-title">Table of Contents</div>
+                            <div id="tocList">
+                                <!-- Table of contents will be populated by JavaScript -->
+                            </div>
                         </div>
-                        <button class="btn btn-outline" style="margin-top: 15px; width: 100%;" onclick="showSection('library'); selectBook('iso')">Read ISO 21500</button>
+                        
+                        <div class="book-content">
+                            <div id="bookContent">
+                                <div class="chapter-title">Select a Standard to Begin Reading</div>
+                                <div class="book-text">
+                                    <p>Choose one of the project management standards from the options above to start reading.</p>
+                                    <p>You can navigate through chapters using the table of contents on the left.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="reader-controls">
+                                <button class="bookmark-btn" id="bookmarkBtn">
+                                    <i class="far fa-bookmark"></i> Bookmark This Page
+                                </button>
+                                <div>
+                                    <button class="btn btn-outline" id="prevChapter">
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </button>
+                                    <button class="btn btn-outline" id="nextChapter">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Recent Activity -->
-                <div class="section">
-                    <div class="section-header">
-                        <h3 class="section-title">Recent Activity</h3>
+            <!-- Enhanced Process Generator Section -->
+            <div class="section" id="process">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-cogs"></i> AI Process Generator</h2>
+                    <p>Now with Phase 2 scenario templates and enhanced documentation</p>
+                </div>
+                
+                <!-- NEW: Scenario Quick Select -->
+                <div class="scenario-quick-select">
+                    <h4>Quick Start: Phase 2 Scenarios</h4>
+                    <div class="scenario-buttons">
+                        <button class="btn btn-outline scenario-quick-btn" data-scenario="software">
+                            <i class="fas fa-laptop-code"></i> Software Dev
+                        </button>
+                        <button class="btn btn-outline scenario-quick-btn" data-scenario="innovation">
+                            <i class="fas fa-lightbulb"></i> Product Innovation
+                        </button>
+                        <button class="btn btn-outline scenario-quick-btn" data-scenario="government">
+                            <i class="fas fa-landmark"></i> Government Project
+                        </button>
                     </div>
-                    <div class="insight-list">
-                        <div class="insight-item">
-                            <i class="fas fa-search" style="color: var(--secondary); margin-right: 10px;"></i>
-                            You searched for "risk management approaches" - 2 hours ago
+                </div>
+                
+                <div class="parameter-grid">
+                    <div class="form-group">
+                        <label class="form-label">Project Type</label>
+                        <select class="form-control" id="projectType">
+                            <option value="software">Software Development</option>
+                            <option value="construction">Construction</option>
+                            <option value="research">Research & Development</option>
+                            <option value="marketing">Marketing Campaign</option>
+                            <option value="change">Organizational Change</option>
+                            <!-- NEW: Phase 2 specific types -->
+                            <option value="software-lightweight">Custom Software (Lightweight)</option>
+                            <option value="innovation-hybrid">Innovative Product (Hybrid)</option>
+                            <option value="government-comprehensive">Government Project (Comprehensive)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Team Size</label>
+                        <select class="form-control" id="teamSize">
+                            <option value="small">Small (1-5 people)</option>
+                            <option value="medium">Medium (6-15 people)</option>
+                            <option value="large">Large (16-50 people)</option>
+                            <option value="xlarge">Very Large (50+ people)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Project Duration</label>
+                        <select class="form-control" id="projectDuration">
+                            <option value="short">Short-term (less than 3 months)</option>
+                            <option value="medium">Medium-term (3-12 months)</option>
+                            <option value="long">Long-term (1-2 years)</option>
+                            <option value="xlong">Very Long-term (2+ years)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Risk Level</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="5" value="3" class="slider" id="riskLevel">
+                            <span class="slider-value" id="riskValue">3</span>
                         </div>
-                        <div class="insight-item">
-                            <i class="fas fa-exchange-alt" style="color: var(--accent); margin-right: 10px;"></i>
-                            Compared "Quality Management" across all standards - 5 hours ago
+                    </div>
+                </div>
+                
+                <!-- Enhanced standards selection -->
+                <div class="form-group">
+                    <label class="form-label">Preferred Standards (select one or more)</label>
+                    <div class="standards-selection">
+                        <label class="standard-checkbox">
+                            <input type="checkbox" id="processPmbok" checked>
+                            <span class="checkmark pmbok"></span>
+                            PMBOK 7
+                        </label>
+                        <label class="standard-checkbox">
+                            <input type="checkbox" id="processPrince2">
+                            <span class="checkmark prince2"></span>
+                            PRINCE2
+                        </label>
+                        <label class="standard-checkbox">
+                            <input type="checkbox" id="processIso" checked>
+                            <span class="checkmark iso"></span>
+                            ISO 21500
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="generateProcess" style="width: 100%; padding: 15px;">
+                    <i class="fas fa-magic"></i> Generate Custom Process Framework
+                </button>
+
+                <!-- Enhanced process output with Phase 2 features -->
+                <div id="processOutput" class="process-output">
+                    <div class="process-visualization" id="processVisualization">
+                        <!-- Process flowchart will be rendered here -->
+                    </div>
+                    <div class="standards-references" id="standardsReferences">
+                        <!-- Standards references will be listed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW: Project Scenarios Section -->
+            <div class="section" id="scenarios">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-rocket"></i> Project Scenarios - Phase 2</h2>
+                    <p>Pre-built process templates for specific project types with standards references</p>
+                </div>
+                
+                <div class="scenarios-grid">
+                    <div class="scenario-card" data-scenario="software">
+                        <div class="scenario-icon">
+                            <i class="fas fa-laptop-code"></i>
                         </div>
-                        <div class="insight-item">
-                            <i class="fas fa-cogs" style="color: var(--success); margin-right: 10px;"></i>
-                            Generated a process for software development project - 1 day ago
+                        <h3>Custom Software Development</h3>
+                        <div class="scenario-badges">
+                            <span class="badge badge-lightweight">Lightweight</span>
+                            <span class="badge badge-agile">Agile</span>
+                        </div>
+                        <ul class="scenario-specs">
+                            <li><i class="fas fa-clock"></i> < 6 months</li>
+                            <li><i class="fas fa-users"></i> < 7 team members</li>
+                            <li><i class="fas fa-check-circle"></i> Well-defined requirements</li>
+                        </ul>
+                        <p>Optimized for speed and flexibility with iterative development</p>
+                        <button class="btn btn-primary scenario-select" data-scenario="software">
+                            <i class="fas fa-play"></i> Generate Process
+                        </button>
+                    </div>
+                    
+                    <div class="scenario-card" data-scenario="innovation">
+                        <div class="scenario-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3>Innovative Product Development</h3>
+                        <div class="scenario-badges">
+                            <span class="badge badge-hybrid">Hybrid</span>
+                            <span class="badge badge-adaptive">Adaptive</span>
+                        </div>
+                        <ul class="scenario-specs">
+                            <li><i class="fas fa-clock"></i> ~1 year duration</li>
+                            <li><i class="fas fa-flask"></i> R&D heavy</li>
+                            <li><i class="fas fa-exclamation-triangle"></i> Uncertain outcomes</li>
+                        </ul>
+                        <p>Balances innovation, iteration, and stakeholder management</p>
+                        <button class="btn btn-primary scenario-select" data-scenario="innovation">
+                            <i class="fas fa-play"></i> Generate Process
+                        </button>
+                    </div>
+                    
+                    <div class="scenario-card" data-scenario="government">
+                        <div class="scenario-icon">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <h3>Large Government Project</h3>
+                        <div class="scenario-badges">
+                            <span class="badge badge-comprehensive">Comprehensive</span>
+                            <span class="badge badge-governance">Governance</span>
+                        </div>
+                        <ul class="scenario-specs">
+                            <li><i class="fas fa-clock"></i> 2-year duration</li>
+                            <li><i class="fas fa-cogs"></i> Multiple components</li>
+                            <li><i class="fas fa-shield-alt"></i> High compliance</li>
+                        </ul>
+                        <p>Comprehensive process covering governance, compliance, and risk management</p>
+                        <button class="btn btn-primary scenario-select" data-scenario="government">
+                            <i class="fas fa-play"></i> Generate Process
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW: Process Design Documentation Section -->
+            <div class="section" id="process-design">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-file-alt"></i> Process Design Documentation</h2>
+                    <p>Comprehensive process reports with standards references and justifications</p>
+                </div>
+                
+                <div class="process-design-container">
+                    <div class="design-controls">
+                        <select id="processTemplate" class="form-control">
+                            <option value="">Select Process Template</option>
+                            <option value="software">Custom Software Development</option>
+                            <option value="innovation">Innovative Product Development</option>
+                            <option value="government">Large Government Project</option>
+                        </select>
+                        <button class="btn btn-primary" id="generateDesignDoc">
+                            <i class="fas fa-file-pdf"></i> Generate Design Document
+                        </button>
+                    </div>
+                    
+                    <div id="designDocument" class="design-document">
+                        <!-- Process design document will be generated here -->
+                        <div class="placeholder-message">
+                            <i class="fas fa-file-alt"></i>
+                            <h3>Process Design Document</h3>
+                            <p>Select a project scenario and generate a comprehensive process design document with standards references.</p>
                         </div>
                     </div>
                 </div>
@@ -555,67 +746,6 @@
                             <div style="margin-top: 20px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-radius: 4px;">
                                 <h4>Next Steps</h4>
                                 <p>Use the Process Generator to create a customized framework that incorporates these recommendations based on your specific project requirements and organizational context.</p>
-            <!-- Standards Library Section -->
-            <div class="section" id="library">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-book"></i> Standards Library</h2>
-                    <p>Read and explore PMBOK 7, PRINCE2, and ISO 21500 standards directly in the application</p>
-                </div>
-                
-                <div class="book-reader">
-                    <div class="book-selector">
-                        <div class="book-option active" data-book="pmbok">
-                            <div class="book-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <h3>PMBOK 7</h3>
-                            <p>Project Management Body of Knowledge</p>
-                        </div>
-                        <div class="book-option" data-book="prince2">
-                            <div class="book-icon">
-                                <i class="fas fa-chess-board"></i>
-                            </div>
-                            <h3>PRINCE2</h3>
-                            <p>Projects IN Controlled Environments</p>
-                        </div>
-                        <div class="book-option" data-book="iso">
-                            <div class="book-icon">
-                                <i class="fas fa-globe"></i>
-                            </div>
-                            <h3>ISO 21500</h3>
-                            <p>Guidance on Project Management</p>
-                        </div>
-                    </div>
-                    
-                    <div class="reader-container">
-                        <div class="book-toc">
-                            <div class="toc-title">Table of Contents</div>
-                            <div id="tocList">
-                                <!-- Table of contents will be populated by JavaScript -->
-                            </div>
-                        </div>
-                        
-                        <div class="book-content">
-                            <div id="bookContent">
-                                <div class="chapter-title">Select a Standard to Begin Reading</div>
-                                <div class="book-text">
-                                    <p>Choose one of the project management standards from the options above to start reading.</p>
-                                    <p>You can navigate through chapters using the table of contents on the left.</p>
-                                </div>
-                            </div>
-                            
-                            <div class="reader-controls">
-                                <button class="bookmark-btn" id="bookmarkBtn">
-                                    <i class="far fa-bookmark"></i> Bookmark This Page
-                                </button>
-                                <div>
-                                    <button class="btn btn-outline" id="prevChapter">
-                                        <i class="fas fa-chevron-left"></i> Previous
-                                    </button>
-                                    <button class="btn btn-outline" id="nextChapter">
-                                        Next <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -633,6 +763,32 @@
                 </div>
             </div>
 
+            <!-- Settings Section -->
+            <div class="section" id="settings">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-cog"></i> Settings</h2>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">AI API Key</label>
+                    <input type="password" class="form-control" id="apiKey" placeholder="Enter your AI API key">
+                    <small>Your API key is stored locally and never shared with our servers.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Default Standards</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label><input type="checkbox" checked> PMBOK 7</label>
+                        <label><input type="checkbox" checked> PRINCE2</label>
+                        <label><input type="checkbox" checked> ISO 21500</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-outline" id="testApiBtn">
+                        <i class="fas fa-vial"></i> Test API Connection
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="saveSettings">Save Settings</button>
+            </div>
+
             <div class="footer">
                 <p>AI-Powered Project Standards Explorer & Comparison Platform | PMBOK 7, PRINCE2, ISO 21500</p>
                 <p>This is a demonstration interface. AI integration would be implemented in a production environment.</p>
@@ -644,8 +800,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="js/script.js"></script>
-</body>
-</html>
-    <script src="js/script.js"></script>
+    <!-- NEW: Phase 2 enhancements -->
+    <script src="js/phase2-enhanced.js"></script>
 </body>
 </html>
